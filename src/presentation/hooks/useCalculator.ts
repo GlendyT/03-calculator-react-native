@@ -1,12 +1,23 @@
 /* eslint-disable prettier/prettier */
 
-import {useState} from 'react';
+import {useRef, useState} from 'react';
+
+enum Operator {
+  add,
+  subtrack,
+  multiply,
+  divide,
+}
 
 export const useCalculator = () => {
   const [number, setNumber] = useState('0');
+  const [prevNumber, setPrevNumber] = useState('0');
+
+  const lastOperation = useRef<Operator>();
 
   const clean = () => {
     setNumber('0');
+    setPrevNumber('0');
   };
 
   const deleteOperation = () => {
@@ -61,13 +72,76 @@ export const useCalculator = () => {
     }
     setNumber(number + numberString);
   };
+
+  const setLastNumber = () => {
+    if (number.endsWith('.')) {
+      setPrevNumber(number.slice(0, -1));
+    } else {
+      setPrevNumber(number);
+    }
+    setNumber('0');
+  };
+
+  const divideOperation = () => {
+    setLastNumber();
+    lastOperation.current = Operator.divide;
+  };
+
+  const multiplyOperation = () => {
+    setLastNumber();
+    lastOperation.current = Operator.multiply;
+  };
+
+  const subtrackOperation = () => {
+    setLastNumber();
+    lastOperation.current = Operator.subtrack;
+  };
+
+  const addOperation = () => {
+    setLastNumber();
+    lastOperation.current = Operator.add;
+  };
+
+  const calculateResult = () => {
+    const num1 = Number(number); //NaN
+    const num2 = Number(prevNumber); //NaN
+
+    switch (lastOperation.current) {
+      case Operator.add:
+        setNumber(`${num1 + num2}`);
+        break;
+
+      case Operator.subtrack:
+        setNumber(`${num2 - num1}`);
+        break;
+
+      case Operator.multiply:
+        setNumber(`${num1 * num2}`);
+        break;
+
+      case Operator.divide:
+        setNumber(`${num2 / num1}`);
+        break;
+
+      default:
+        throw new Error('Operation not implemented');
+    }
+    setPrevNumber('0');
+  };
+
   return {
     //Properties
     number,
+    prevNumber,
     //Methods
     buildNumber,
     clean,
     deleteOperation,
     toggleSign,
+    divideOperation,
+    multiplyOperation,
+    subtrackOperation,
+    addOperation,
+    calculateResult,
   };
 };
